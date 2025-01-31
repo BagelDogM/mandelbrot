@@ -59,12 +59,12 @@ void main() {
         zx = zx + cx;
         
         float z_val = sqrt(zx*zx + zy*zy);
-        if (sqrt(zx*zx + zy*zy) > 2000.0) {
-            float fractional = 1.0 - log(log(z_val)) / log2;
+        if (sqrt(zx*zx + zy*zy) > 20000.0) {
+            float fractional = 1.0 - log(log(sqrt(zx*zx + zy*zy))) / log2;
 
             float hue = (float(i)+fractional)/float(iter);
             //hue = hue-floor(hue);
-            gl_FragColor = color(hue);
+            gl_FragColor = color(hue);//vec4(hsv2rgb(vec3(hue, 1, 1)),1.0);
             done = true;
             break;
         }

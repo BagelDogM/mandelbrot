@@ -30,6 +30,7 @@ function drawScene(gl, programInfo, buffers, size, initial_size, center) {
   // Tell the shader we bound the texture to texture unit 0
   gl.uniform1i(programInfo.uniformLocations.tex, 0);
 
+  // Draw the frame
   {
     const offset = 0;
     const vertexCount = 4;

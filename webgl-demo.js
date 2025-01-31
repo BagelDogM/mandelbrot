@@ -69,11 +69,14 @@ var size = 3.0;
 var center = [0, 0];
 
 // Add event listeners.
-window.addEventListener("click", (event) => {
-    var zoom_amount = 2;
+window.addEventListener("wheel", (event) => {
+    event.stopPropagation();
+    event.preventDefault();
+    var zoom_amount = 1.05;
     var zoom;
-    if (!event.shiftKey) {zoom = zoom_amount;}
-    if (event.shiftKey) {zoom = 1/zoom_amount;}
+    if (event.deltaY > 0) {zoom = zoom_amount;}
+    else if (event.deltaY < 0) {zoom = 1/zoom_amount;}
+    else {zoom = 1;}
 
     var x = event.clientX*2;
     var y = event.clientY*2;
@@ -111,10 +114,11 @@ function main() {
 }
 
 // Create texture
-var tex = loadTexture(gl, "tex_p.png", function(tex) {
+var tex = loadTexture(gl, "tex.png", main);
+//function(tex) {
 
-gl.activeTexture(gl.TEXTURE0);
-gl.bindTexture(gl.TEXTURE_2D, tex);
+// gl.activeTexture(gl.TEXTURE0);
+// gl.bindTexture(gl.TEXTURE_2D, tex);
 
 // gl.texImage2D(
 //     gl.TEXTURE_2D, 0, gl.RGB, 1, 1, 0, gl.RGB, gl.UNSIGNED_BYTE, 
@@ -122,6 +126,5 @@ gl.bindTexture(gl.TEXTURE_2D, tex);
 //         255, 0, 255, 
 //     ])
 // );
-});
 
-main(); // Draw the canvas for the first time.
+//main(); // Draw the canvas for the first time.

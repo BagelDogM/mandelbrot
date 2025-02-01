@@ -1,10 +1,7 @@
-function drawScene(gl, programInfo, buffers, size, initial_size, center) {
-    gl.clearColor(0.0, 0.0, 0.0, 1.0); // Clear to black, fully opaque
-    gl.clearDepth(1.0); // Clear everything
-    gl.enable(gl.MULTISAMPLE); // Enable depth testing
-    gl.depthFunc(gl.LEQUAL); // Near things obscure far things
-  
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+function drawScene(gl, programInfo, buffers, size, initial_size, center, iter) {
+  gl.clearColor(0.0, 0.0, 0.0, 1.0); // Clear to black, fully opaque
+  gl.clearDepth(1.0); // Clear everything  
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     
   setPositionAttribute(gl, buffers, programInfo);
 
@@ -26,6 +23,11 @@ function drawScene(gl, programInfo, buffers, size, initial_size, center) {
     programInfo.uniformLocations.center,
     center
   );
+
+  gl.uniform1i(
+    programInfo.uniformLocations.iter, 
+    iter
+  )
 
   // Tell the shader we bound the texture to texture unit 0
   gl.uniform1i(programInfo.uniformLocations.tex, 0);

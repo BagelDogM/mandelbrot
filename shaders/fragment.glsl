@@ -6,9 +6,12 @@ uniform float size;
 uniform float initial_size;
 uniform vec2 center;
 uniform sampler2D tex;
+uniform int iter;
 
-const int iter = 1024;
 const float log2 = log(2.0);
+
+// This is the upper limit that the iter uniform can be to make GLSL happy.
+const int iterations_upper_lim = 4096;
 
 vec3 hsv2rgb(vec3 c)
 {
@@ -49,7 +52,11 @@ void main() {
     float cy = coords[1];
     
     bool done = false;
-    for (int i=0;i<iter;i++) {
+    float x_old = 0.0;
+    float y_old = 0.0;
+
+    int period = 0;
+    for (int i=0;i<iterations_upper_lim;i++) {
         float tempzy = zy;
         
         zy = 2.0*zx*zy;
@@ -57,15 +64,31 @@ void main() {
         
         zx = zx*zx - tempzy*tempzy;
         zx = zx + cx;
-        
-        float z_val = sqrt(zx*zx + zy*zy);
-        if (sqrt(zx*zx + zy*zy) > 20000.0) {
-            float fractional = 1.0 - log(log(sqrt(zx*zx + zy*zy))) / log2;
 
-            float hue = (float(i)+fractional)/float(iter);
+        if (x_old == zx && y_old == zy) {
+            break;
+        }
+
+        period = period + 1;
+        if (period == 30) {
+            x_old = zx;
+            y_old = zy;
+            period = 0;
+        }
+    
+        float z_val = sqrt(zx*zx + zy*zy);
+        if (z_val > 20000.0) {
+            float fractional = 1.0 - log(log(z_val)) / log2;
+            float value = float(i)+fractional;
+            if (value < 0.0) {value = 0.0;}
+            float hue = value/float(iter);
             //hue = hue-floor(hue);
             gl_FragColor = color(hue);//vec4(hsv2rgb(vec3(hue, 1, 1)),1.0);
             done = true;
+            break;
+        }
+
+        if (i>iter) {
             break;
         }
     }
@@ -76,5 +99,4 @@ void main() {
     //if ((390 < int(st.x) && int(st.x) < 410 && int(st.y) == 400) ||
     //(390 < int(st.y) && int(st.y) < 410 && int(st.x) == 400)) {
     //    gl_FragColor = vec4(0.4, 1.0, 1.0, 1.0);
-    //}
   }

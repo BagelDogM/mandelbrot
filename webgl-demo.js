@@ -2,23 +2,9 @@ import { initBuffers } from "./init-buffers.js";
 import { drawScene } from "./draw-scene.js";
 import { initShaderProgram } from "./shaders.js";
 import { loadTexture } from "./textures.js";
+import { calculate_new_center, transform } from "./functions.js";
 const vsSource = (await (await fetch("shaders/vertex.glsl"))    .text()).toString();
 const fsSource = (await (await fetch("shaders/fragment.glsl"))  .text()).toString();
-
-function transform(x, y, center, size) {
-    var x_boundleft = center[0] - (size / 2.0);
-    var x_boundright = center[0] + (size / 2.0);
-    var y_boundleft = center[1] - (size/ 2.0);
-    var y_boundright = center[1] + (size / 2.0);
-    
-    var xboundrange = (x_boundright - x_boundleft);
-    var yboundrange = (y_boundright - y_boundleft);
-    
-    var xtransform = xboundrange / initial_size;
-    var ytransform = yboundrange / initial_size;
-    
-    return [x * xtransform + x_boundleft, y * ytransform + y_boundleft];
-}
 
 // Initialize the GL context IMPORTANT VERY IMPORTANT: SET CANVAS WIDTH BEFORE GETTING GL CONTEXT BECAUSE OTHWERISE IT BREAKS. thanks you :3
 var canvas = document.querySelector("#glcanvas");
@@ -67,31 +53,19 @@ const buffers = initBuffers(gl);
 
 // Add event listeners.
 window.addEventListener("wheel", (event) => {
+    // Stop regular zoom behaviour
     event.stopPropagation();
     event.preventDefault();
-    var zoom_amount = 1.05;
-    var zoom;
-    if (event.deltaY > 0) {zoom = zoom_amount;}
-    else if (event.deltaY < 0) {zoom = 1/zoom_amount;}
-    else {zoom = 1;}
+
+    // Calculate how much to zoom
+    var zoom_modifier = 1.05;
+    var zoom_amount = event.deltaY > 0 ? zoom_modifier : 1/zoom_modifier;
 
     var x = event.clientX*2;
-    var y = event.clientY*2;
+    var y = height-event.clientY*2; //Invert the y co-ordinate because GLSL draws from bottom to top for some reason.
 
-    // _m indicated mandelrbot co-ordinates. Invert the y co-ordinate because idfk why.
-    var click_m = transform(x, height-y, center, size);
-
-    // Get the distance from the click to the current center
-    var xdist_m = center[0]-click_m[0];
-    var ydist_m = center[1]-click_m[1];
-
-    // modify it by the zoom
-    xdist_m /= zoom;
-    ydist_m /= zoom;
-
-    // create a new center using the modified co-ords.
-    center = [xdist_m+click_m[0], ydist_m+click_m[1]];
-    size = size/zoom;
+    center = calculate_new_center(center, size, [x, y], initial_size, zoom_amount);
+    size = size/zoom_amount;
     console.log("zooming in at size: " + size.toString());
 
     main();

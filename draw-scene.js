@@ -8,26 +8,14 @@ function drawScene(gl, programInfo, buffers, size, initial_size, center, iter) {
   // Tell WebGL to use our program when drawing
   gl.useProgram(programInfo.program);
 
-    // Pass uniforms.
-  gl.uniform1f(
-    programInfo.uniformLocations.size,
-    size
-  );
+  // Pass uniforms to the shader.
+  gl.uniform1f(programInfo.uniformLocations.size, size);
 
-  gl.uniform1f(
-    programInfo.uniformLocations.initial_size,
-    initial_size
-  );
+  gl.uniform1f(programInfo.uniformLocations.initial_size, initial_size);
 
-  gl.uniform2fv(
-    programInfo.uniformLocations.center,
-    center
-  );
+  gl.uniform2fv(programInfo.uniformLocations.center, center);
 
-  gl.uniform1i(
-    programInfo.uniformLocations.iter, 
-    iter
-  )
+  gl.uniform1i(programInfo.uniformLocations.iter, iter);
 
   // Tell the shader we bound the texture to texture unit 0
   gl.uniform1i(programInfo.uniformLocations.tex, 0);

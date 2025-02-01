@@ -32,4 +32,10 @@ function calculate_new_center(center, size, click, canvas_size, zoom) {
     return center;
 }
 
-export {transform, calculate_new_center}
+function getFormData(formData) {
+    var entries = formData.entries();
+    var data = Object.fromEntries(entries);
+    return data;
+}
+
+export {transform, calculate_new_center, getFormData}

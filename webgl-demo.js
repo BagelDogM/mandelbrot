@@ -2,26 +2,20 @@ import { initBuffers } from "./init-buffers.js";
 import { drawScene } from "./draw-scene.js";
 import { initShaderProgram } from "./shaders.js";
 import { loadTexture } from "./textures.js";
-import { calculate_new_center, transform } from "./functions.js";
+import { calculate_new_center, transform, getFormData } from "./functions.js";
 const vsSource = (await (await fetch("shaders/vertex.glsl"))    .text()).toString();
 const fsSource = (await (await fetch("shaders/fragment.glsl"))  .text()).toString();
 
 // Initialize the GL context IMPORTANT VERY IMPORTANT: SET CANVAS WIDTH BEFORE GETTING GL CONTEXT BECAUSE OTHWERISE IT BREAKS. thanks you :3
 var canvas = document.querySelector("#glcanvas");
 
-var initial_size, width, height;
+// Initialise some size variables
+var width = window.innerWidth*2;
+var height = window.innerHeight*2;
+var canvas_size = height;
 
-function setCanvasWidth() {
-    console.log("resizing...")
-    width = window.innerWidth*2;
-    height = window.innerHeight*2;
-    initial_size = height;
-    canvas.width = width;
-    canvas.height = height;
-    console.log("height: " + (height).toString())
-    console.log("width: " + (width).toString())
-}
-setCanvasWidth(); // Set the width and height etc for the first time.
+canvas.width = width;
+canvas.height = height;
 
 var gl = canvas.getContext("webgl", {antialias: true});
 // Only continue if WebGL is available and working
@@ -30,26 +24,6 @@ if (gl === null) {
         "Unable to initialize WebGL. Your browser or machine may not support it."
     );
 }
-
-// Initialize the shader program.
-const shaderProgram = initShaderProgram(gl, vsSource, fsSource);
-
-// Collect all the info needed to use the shader program: attributes and uniform locations.
-const programInfo = {
-    program: shaderProgram,
-    attribLocations: {
-        vertexPosition: gl.getAttribLocation(shaderProgram, "aVertexPosition"),
-    },
-    uniformLocations: {
-        size:           gl.getUniformLocation(shaderProgram, "size"),
-        initial_size:   gl.getUniformLocation(shaderProgram, "initial_size"),
-        center:         gl.getUniformLocation(shaderProgram, "center"),
-        tex:            gl.getUniformLocation(shaderProgram, "tex"),
-        iter:            gl.getUniformLocation(shaderProgram, "iter")
-    }
-};
-
-const buffers = initBuffers(gl);
 
 // Add event listeners.
 window.addEventListener("wheel", (event) => {
@@ -64,26 +38,21 @@ window.addEventListener("wheel", (event) => {
     var x = event.clientX*2;
     var y = height-event.clientY*2; //Invert the y co-ordinate because GLSL draws from bottom to top for some reason.
 
-    center = calculate_new_center(center, size, [x, y], initial_size, zoom_amount);
+    center = calculate_new_center(center, size, [x, y], canvas_size, zoom_amount);
     size = size/zoom_amount;
     console.log("zooming in at size: " + size.toString());
 
     main();
 }, {passive:false});
 
-// Resize listener
+// Resize listener. Reload so the shader does not mess up.
 window.addEventListener("resize",(event)=>{window.location.reload();});
 
 // Form listener
 var form = document.getElementById("ui");
-
-function getFormData(formData) {
-    var entries = formData.entries();
-    var data = Object.fromEntries(entries);
-    return data;
-}
-
-form.addEventListener("input", function () {
+var iterations;
+function updateDataFromForm() {
+    console.log('Form changed!');
     var formData = new FormData(form);
     var data = getFormData(formData);
 
@@ -92,24 +61,38 @@ form.addEventListener("input", function () {
         iterations = 4096;
     }
 
-    texture = data["color-scheme"]+".png";
-    loadTexture(gl, "textures/"+texture, main);
-});
+    var texture = data["color-scheme"]+".png";
+    loadTexture(gl, "textures/"+texture, main); // This will run main() once the texture is loaded.
+}
+form.addEventListener("input", updateDataFromForm);
 
-var formData = new FormData(form);
+// Initialize the shader program.
+const shaderProgram = initShaderProgram(gl, vsSource, fsSource);
+
+// Collect all the info needed to use the shader program: attributes and uniform locations.
+const programInfo = {
+    program: shaderProgram,
+    attribLocations: {
+        vertexPosition: gl.getAttribLocation(shaderProgram, "aVertexPosition"),
+    },
+    uniformLocations: {
+        size:           gl.getUniformLocation(shaderProgram, "size"),
+        canvas_size:   gl.getUniformLocation(shaderProgram, "canvas_size"),
+        center:         gl.getUniformLocation(shaderProgram, "center"),
+        tex:            gl.getUniformLocation(shaderProgram, "tex"),
+        iter:            gl.getUniformLocation(shaderProgram, "iter")
+    }
+};
+
+const buffers = initBuffers(gl);
 
 var size = 3.0;
 var center = [0, 0];
-var iterations = getFormData(formData)["iterations"];
-var texture = "textures/"+getFormData(formData)["color-scheme"]+".png";
-loadTexture(gl, texture, main);
+// Dummy-run the form event listener function so that we don't have to rewrite its behaviour here (getting iterations and color palette)
+updateDataFromForm();
 
 function main() {
     console.log('rendering...')
-    // Set clear color to black, fully opaque and then clear the color buffer with specified clear color
-    gl.clearColor(0.0, 0.0, 0.0, 1.0);
-    gl.clear(gl.COLOR_BUFFER_BIT);
-  
     // Draw the scene
-    drawScene(gl, programInfo, buffers, size, initial_size, center, iterations);
+    drawScene(gl, programInfo, buffers, size, canvas_size, center, iterations);
 }

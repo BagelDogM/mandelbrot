@@ -3,7 +3,7 @@ precision highp float;
 #endif
 
 uniform float size;
-uniform float initial_size;
+uniform float canvas_size;
 uniform vec2 center;
 uniform sampler2D tex;
 uniform int iter;
@@ -34,8 +34,8 @@ vec2 transform(float x, float y, vec2 center, float size) {
     float xboundrange = (x_boundright - x_boundleft);
     float yboundrange = (y_boundright - y_boundleft);
     
-    float xtransform = xboundrange / initial_size;
-    float ytransform = yboundrange / initial_size;
+    float xtransform = xboundrange / canvas_size;
+    float ytransform = yboundrange / canvas_size;
     
     return vec2(x * xtransform + x_boundleft, y * ytransform + y_boundleft);
 }

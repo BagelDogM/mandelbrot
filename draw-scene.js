@@ -1,4 +1,4 @@
-function drawScene(gl, programInfo, buffers, size, initial_size, center, iter) {
+function drawScene(gl, programInfo, buffers, size, canvas_size, center, iter) {
   gl.clearColor(0.0, 0.0, 0.0, 1.0); // Clear to black, fully opaque
   gl.clearDepth(1.0); // Clear everything  
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -11,7 +11,7 @@ function drawScene(gl, programInfo, buffers, size, initial_size, center, iter) {
   // Pass uniforms to the shader.
   gl.uniform1f(programInfo.uniformLocations.size, size);
 
-  gl.uniform1f(programInfo.uniformLocations.initial_size, initial_size);
+  gl.uniform1f(programInfo.uniformLocations.canvas_size, canvas_size);
 
   gl.uniform2fv(programInfo.uniformLocations.center, center);
 

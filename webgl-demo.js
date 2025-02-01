@@ -14,6 +14,7 @@ var width = window.innerWidth*2;
 var height = window.innerHeight*2;
 var canvas_size = height;
 
+// Set canvas size and width based on window dimensions.
 canvas.width = width;
 canvas.height = height;
 
@@ -46,7 +47,7 @@ window.addEventListener("wheel", (event) => {
 }, {passive:false});
 
 // Resize listener. Reload so the shader does not mess up.
-window.addEventListener("resize",(event)=>{window.location.reload();});
+window.addEventListener("resize", (event)=>{window.location.reload();});
 
 // Form listener
 var form = document.getElementById("ui");

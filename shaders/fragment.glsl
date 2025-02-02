@@ -13,50 +13,40 @@ const float log2 = log(2.0);
 // This is the upper limit that the iter uniform can be to make GLSL happy.
 const int iterations_upper_lim = 4096;
 
-vec3 hsv2rgb(vec3 c)
-{
-    vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
-    vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
-    return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
-}
-
 vec4 color(float c) {
-    return texture2D(tex, vec2(mod(c, 1.0), 1));
-    //return vec3(0, 0, 0);
+    return texture2D(tex, vec2(min(c, 1.0), 1));
 }
 
 vec2 transform(float x, float y, vec2 center, float size) {
+    float xtransform = size / canvas_size;
+    float ytransform = size / canvas_size;
+    
     float x_boundleft = center[0] - (size / 2.0);
-    float x_boundright = center[0] + (size / 2.0);
-    float y_boundleft = center[1] - (size/ 2.0);
-    float y_boundright = center[1] + (size / 2.0);
-    
-    float xboundrange = (x_boundright - x_boundleft);
-    float yboundrange = (y_boundright - y_boundleft);
-    
-    float xtransform = xboundrange / canvas_size;
-    float ytransform = yboundrange / canvas_size;
-    
+    float y_boundleft = center[1] - (size / 2.0);
+
     return vec2(x * xtransform + x_boundleft, y * ytransform + y_boundleft);
 }
 
-void main() {
+float mandel() {
+    // Calculate co-ordinates
     vec2 st = gl_FragCoord.xy;
     
-    //old_center = transform(center[0], center[1], old_center, size);
-    //vec2 center = vec2(-0.4811840920781893, -0.6143931112825788);//vec2(-.745,.186);
     vec2 coords = transform(st.x, st.y, center, size);
 
     float zx,zy=0.0;
     float cx = coords[0];
     float cy = coords[1];
     
-    bool done = false;
+    // periodicity checking
     float x_old = 0.0;
     float y_old = 0.0;
-
     int period = 0;
+
+    // We don't actually iterate using *our* iteration limit, rather an upper bound.
+    // this is because GLSL can't run a loop using a non-constant value so we have to instead
+    // break within the loop if we exceed our limit.
     for (int i=0;i<iterations_upper_lim;i++) {
+        // mandelbrot calculations
         float tempzy = zy;
         
         zy = 2.0*zx*zy;
@@ -65,8 +55,9 @@ void main() {
         zx = zx*zx - tempzy*tempzy;
         zx = zx + cx;
 
+        // periodicity checking
         if (x_old == zx && y_old == zy) {
-            break;
+            return 0.;
         }
 
         period = period + 1;
@@ -76,27 +67,31 @@ void main() {
             period = 0;
         }
     
+        // escape checking
         float z_val = sqrt(zx*zx + zy*zy);
-        if (z_val > 20000.0) {
+        if (z_val > 2.0) {
             float fractional = 1.0 - log(log(z_val)) / log2;
             float value = float(i)+fractional;
-            if (value < 0.0) {value = 0.0;}
+
             float hue = value/float(iter);
-            //hue = hue-floor(hue);
-            gl_FragColor = color(hue);//vec4(hsv2rgb(vec3(hue, 1, 1)),1.0);
-            done = true;
-            break;
+            hue = max(min(hue, 1.0), 0.0);
+
+            return hue;
         }
 
+        // If we've exceeded the iteration limit that we set (but the loop hasn't yet ended)
         if (i>iter) {
-            break;
+            return 0.;
         }
     }
-    if (!done) {
-        gl_FragColor = vec4(vec3(0, 0, 0),1.0);
-    }
-
-    //if ((390 < int(st.x) && int(st.x) < 410 && int(st.y) == 400) ||
-    //(390 < int(st.y) && int(st.y) < 410 && int(st.x) == 400)) {
-    //    gl_FragColor = vec4(0.4, 1.0, 1.0, 1.0);
   }
+
+// Actually color the pixels.
+void main() {
+    float n = mandel();
+    if (n == 0.) {
+        gl_FragColor = vec4(vec3(0, 0, 0),1.0);
+    } else {
+        gl_FragColor = color(n);//vec4(hsv2rgb(vec3(hue, 1, 1)),1.0);
+    }
+}

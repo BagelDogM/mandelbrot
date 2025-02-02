@@ -2,7 +2,7 @@ import { initBuffers } from "./init-buffers.js";
 import { drawScene } from "./draw-scene.js";
 import { initShaderProgram } from "./shaders.js";
 import { loadTexture } from "./textures.js";
-import { calculate_new_center, transform, getFormData } from "./functions.js";
+import { calculate_new_center, getFormData } from "./functions.js";
 const vsSource = (await (await fetch("shaders/vertex.glsl"))    .text()).toString();
 const fsSource = (await (await fetch("shaders/fragment.glsl"))  .text()).toString();
 

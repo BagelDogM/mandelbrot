@@ -41,7 +41,7 @@ window.addEventListener("wheel", (event) => {
 
     center = calculate_new_center(center, size, [x, y], canvas_size, zoom_amount);
     size = size/zoom_amount;
-    console.log("zooming in at size: " + size.toString());
+    console.log("zoom: " + size.toString() + " | center: " + center.toString());
 
     main();
 }, {passive:false});
@@ -53,7 +53,6 @@ window.addEventListener("resize", (event)=>{window.location.reload();});
 var form = document.getElementById("ui");
 var iterations;
 function updateDataFromForm() {
-    console.log('Form changed!');
     var formData = new FormData(form);
     var data = getFormData(formData);
 
@@ -93,7 +92,6 @@ var center = [0, 0];
 updateDataFromForm();
 
 function main() {
-    console.log('rendering...')
     // Draw the scene
     drawScene(gl, programInfo, buffers, size, canvas_size, center, iterations);
 }

@@ -2,11 +2,11 @@
 precision highp float;
 #endif
 
-uniform float size;
-uniform float canvas_size;
-uniform vec2 center;
-uniform sampler2D tex;
-uniform int iter;
+uniform float size;         // The size (in the complex plane) of the part of the fractal we are rendering.
+uniform float canvas_size;  // Smallest side of canvas. Used in transformations from gl_fragCoord to complex plane co-ordinates.
+uniform vec2 center;        // Center of render.
+uniform sampler2D tex;      // Texture for coloring.
+uniform int iter;           // The maximum number of iterations we run to.
 
 const float log2 = log(2.0);
 
@@ -74,12 +74,13 @@ float mandel() {
             float value = float(i)+fractional;
 
             float hue = value/float(iter);
-            hue = max(min(hue, 1.0), 0.0);
+            hue = max(min(hue, 1.0), 0.0001); // Don't clamp to exactly 0 because that's used for the inside of the set.
 
             return hue;
         }
 
-        // If we've exceeded the iteration limit that we set (but the loop hasn't yet ended)
+        // If we've exceeded the iteration limit that we set (but the loop hasn't yet ended, 
+        // because that uses something different) we exit and know we are in the set.
         if (i>iter) {
             return 0.;
         }

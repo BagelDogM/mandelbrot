@@ -92,6 +92,5 @@ var center = [0, 0];
 updateDataFromForm();
 
 function main() {
-    // Draw the scene
     drawScene(gl, programInfo, buffers, size, canvas_size, center, iterations);
 }
